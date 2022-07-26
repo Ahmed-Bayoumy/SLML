@@ -877,6 +877,10 @@ class surrogateModel(ABC):
 	def predict(self):
 		pass
 
+	@abstractmethod
+	def addToTrainingSet(self):
+		pass
+
 
 @dataclass
 class RBF(surrogateModel):
@@ -894,20 +898,20 @@ class RBF(surrogateModel):
 		self.x = DataSet(name="x", nrows=1, ncols=1)
 		if xfile is not None and x is None:
 			temp = copy.deepcopy(np.loadtxt(xfile, skiprows=1, delimiter=","))
-			self.x.points = temp.reshape(temp.shape[0], -1)
+			self.xt.points = temp.reshape(temp.shape[0], -1)
 		else:
-			self.x.points = x
+			self.xt.points = x
 
 		if type == "train":
-			self.y = DataSet(name="y", nrows=1, ncols=1)
+			self.yt = DataSet(name="y", nrows=1, ncols=1)
 			if yfile is not None and x is None:
 				temp = copy.deepcopy(np.loadtxt(
 					yfile, skiprows=1, delimiter=","))
-				self.y.points = temp.reshape(temp.shape[0], -1)
+				self.yt.points = temp.reshape(temp.shape[0], -1)
 			else:
-				self.y.points = y
+				self.yt.points = y
 
-			self.epsilon = np.std(self.y.points)
+			self.epsilon = np.std(self.yt.points)
 
 			self.train()
 
@@ -967,12 +971,9 @@ class RBF(surrogateModel):
 
 	def train(self):
 		r: DataSet = DataSet(name="r", nrows=1, ncols=1)
-		r.points = self._evaluate_radial_distance(self.x.points)
-		self.xt.points = copy.deepcopy(self.x.points)
-		self.yt.points = copy.deepcopy(self.y.points)
-
+		r.points = self._evaluate_radial_distance(self.xt.points)
 		N = self._evaluate_kernel(r)
-		self.weights = np.linalg.solve(N, self.y.points)
+		self.weights = np.linalg.solve(N, self.yt.points)
 
 	def predict(self):
 		r: DataSet = DataSet(name="r", nrows=1, ncols=1)
@@ -980,6 +981,18 @@ class RBF(surrogateModel):
 			self.xt.points, self.x.points)
 		N = self._evaluate_kernel(r)
 		self.yp.points = np.matmul(N.T, self.weights)
+	
+	def addToTrainingSet(self, x_new: np.ndarray, y_new: np.ndarray):
+		if not self.xt.is_initialized():
+			raise RuntimeError("The training set is empty! Initialize it before appending more data to it.")
+		
+		for i in range(np.size(x_new, axis=0)):
+			if not x_new[i].tolist() in self.xt.points.tolist():
+				self.xt.points = np.append(self.xt.points, [x_new[i]], axis=0)
+				self.yt.points = np.append(self.yt.points, [y_new[i]], axis=0)
+
+
+
 
 # Class to create or use a Kriging surrogate model
 @dataclass
@@ -1000,22 +1013,22 @@ class Kriging(surrogateModel):
 		self.yp = DataSet(name="yp", nrows=1, ncols=1)
 		self.x = DataSet(name="x", nrows=1, ncols=1)
 		if xfile is not None and x is None:
-			self.x.points = np.loadtxt(xfile, skiprows=1, delimiter=",")
-			self.x.points = self.x.points.reshape(self.x.points.shape[0], -1)
+			self.xt.points = np.loadtxt(xfile, skiprows=1, delimiter=",")
+			self.xt.points = self.x.points.reshape(self.x.points.shape[0], -1)
 			self.scf_func = scf_func
 			self.model_db = model_db
 		else:
-			self.x.points = x
+			self.xt.points = x
 
 		if type == 'train':
-			self.y = DataSet(name="y", nrows=1, ncols=1)
+			self.yt = DataSet(name="y", nrows=1, ncols=1)
 			if yfile is not None and x is None:
-				self.y.points = np.loadtxt(yfile, skiprows=1, delimiter=",")
-				self.y.points = self.y.points.reshape(self.y.points.shape[0], -1)
+				y = np.loadtxt(yfile, skiprows=1, delimiter=",")
+				self.yt.points = y.reshape(y.points.shape[0], -1)
 			else:
 				p = os.path.abspath(os.path.join(os.getcwd(), "model.db"))
 				self.model_db = p
-				self.y.points = y
+				self.yt.points = y
 
 
 			# Set initial values for theta and p
@@ -1026,8 +1039,8 @@ class Kriging(surrogateModel):
 
 			# Store model parameters in a Python shelve database
 			db = shelve.open(self.model_db)
-			db['x_train'] = self.x.points
-			db['y_train'] = self.y.points
+			db['x_train'] = self.xt.points
+			db['y_train'] = self.yt.points
 			db['beta'] = self.beta
 			db['r_inv'] = self.r_inv
 			db['theta'] = self.theta
@@ -1059,9 +1072,9 @@ class Kriging(surrogateModel):
 	# Function to compute beta for the ordinary Kriging algorithm
 	def _compute_b(self) -> np.ndarray:
 		# Create a matrix of ones for calculating beta
-		o = np.ones((self.x.points.shape[0], 1))
+		o = np.ones((self.xt.points.shape[0], 1))
 		beta = np.linalg.multi_dot(
-			[o.T, self.r_inv.points, o, o.T, self.r_inv.points, self.y.points])
+			[o.T, self.r_inv.points, o, o.T, self.r_inv.points, self.yt.points])
 		return beta
 
 	# Function to compute the specified SCF
@@ -1089,11 +1102,11 @@ class Kriging(surrogateModel):
 		self.theta = x[0] 
 		self.p = x[1]  
 		self.r_inv: DataSet = DataSet(name="r_inv", nrows=1, ncols=1)
-		self.r_inv = self._compute_r_inv(self.x.points)
+		self.r_inv = self._compute_r_inv(self.xt.points)
 		self.beta = self._compute_b()  
-		n = self.x.points.shape[0]  
-		y_b: np.ndarray = self.y.points - \
-			np.matmul(np.ones((self.y.points.shape[0], 1)), self.beta)
+		n = self.xt.points.shape[0]  
+		y_b: np.ndarray = self.yt.points - \
+			np.matmul(np.ones((self.yt.points.shape[0], 1)), self.beta)
 		sigma_sq: np.ndarray = (1 / n) * np.matmul(np.matmul(y_b.T,
 												 self.r_inv.points), y_b)  
 		# TODO: use our coded cholesky
@@ -1102,7 +1115,11 @@ class Kriging(surrogateModel):
 		if not isinstance(mle, complex):
 			return [mle.tolist(), [0]]
 		else:
-			return [mle.real, [0]]
+			if mle.real == -np.inf:
+				return [-100000000., [0.]]
+			elif mle.real == np.inf:
+				return [100000000., [0.]]
+			return [mle.real, [0.]]
 	
 	def train(self):
 		x0 = [self.theta, self.p]
@@ -1123,13 +1140,22 @@ class Kriging(surrogateModel):
 		results = out["xmin"]
 		self.theta = results[0]
 		self.p = results[1]
-		self.r_inv = self._compute_r_inv(self.x.points)
+		self.r_inv = self._compute_r_inv(self.xt.points)
 		self.beta = self._compute_b()
 	def predict(self):
 		r = self._scf_compute(self.calc_distance(self.xt.points, self.x.points)).T
-		y_b = self.y.points - \
-			np.matmul(np.ones((self.y.points.shape[0], 1)), self.beta)
+		y_b = self.yt.points - \
+			np.matmul(np.ones((self.yt.points.shape[0], 1)), self.beta)
 		self.yp.points = self.beta + np.linalg.multi_dot([r, self.r_inv.points, y_b])
+	
+	def addToTrainingSet(self, x_new: np.ndarray, y_new: np.ndarray):
+		if not self.xt.is_initialized():
+			raise RuntimeError("The training set is empty! Initialize it before appending more data to it.")
+		
+		for i in range(np.size(x_new, axis=0)):
+			if not x_new[i].tolist() in self.xt.points.tolist():
+				self.xt.points = np.append(self.xt.points, [x_new[i]], axis=0)
+				self.yt.points = np.append(self.yt.points, [y_new[i]], axis=0)
 
 @dataclass
 class bmSM:
@@ -1151,6 +1177,25 @@ class bmSM:
 				)
 			if kx > 0:
 				y[:, 0] += 200.0 * (x[:, kx] - x[:, kx - 1] ** 2)
+
+		return y
+	
+	def RB1(self, x, kx):
+		ne, nx = x.shape
+		y = np.zeros((ne, 1), complex)
+		if kx is None:
+			for ix in range(nx - 1):
+				y[:, 0] += (
+					100.0 * (x[:, ix + 1] - x[:, ix] ** 2) +
+					(1 - x[:, ix])
+				)
+		else:
+			if kx < nx - 1:
+				y[:, 0] += -100.0 * (x[:, kx + 1] - x[:, kx] ** 2) * x[:, kx] - 2 * (
+					1 - x[:, kx]
+				)
+			if kx > 0:
+				y[:, 0] += 100.0 * (x[:, kx] - x[:, kx - 1])
 
 		return y
 
@@ -1179,27 +1224,40 @@ class bmSM:
 	def RB_RBF(self):
 		v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
 		n = 50
-
+		# Generate initial sample points
 		sampling = FullFactorial(ns=n, vlim=v, w=None, c=False)
-
+		# Create the training set xt, yt
 		xt = sampling.generate_samples()
 		yt = self.RB(xt, None)
-
 		opts: Dict = {}
-		opts["weights"] = np.empty((1, 1))
-
-		# sm = RBF(type="train", x=xt, y=yt, options=opts, rbf_func="cubic")
+		opts["weights"] = np.zeros((1,1))
+		# Build the surrogate model
 		self.sm = RBF(type="train", x=xt, y=yt, options=opts, rbf_func="cubic")
+		w1 = self.sm.weights
 
-
+		# Generate points to predict the approximated responses on
 		sampling = LHS(ns=n, vlim=v)
 		sampling.options["criterion"] = "ExactSE"
-
+		sampling.options["randomness"] = 451236
 		xp = sampling.generate_samples()
-		self.sm.xt.points = self.sm.x.points
 		self.sm.x.points = xp
+		# Predict responses using the trained surrogate 
 		self.sm.predict()
-		yp = self.sm.yp
+		yp = copy.deepcopy(self.sm.yp)
+		# The following commented lines used for testing samples injection and surrogate retraining
+		# xp_new: DataSet = DataSet(name="extend", nrows=1, ncols=1)
+		# yp_new: DataSet = DataSet(name="extend", nrows=1, ncols=1)
+		# np.random.seed = 1000323
+		# sampling2 = LHS(ns=n, vlim=v)
+		# # Create the training set xt, yt
+		# xt2 = sampling2.generate_samples()
+		# yt2 = self.RB1(xt, None)
+		# self.sm.addToTrainingSet(xt2, yt2)
+		# self.sm.train()
+		# self.sm.yp.points = np.zeros((1,1))
+		# w2 = self.sm.weights
+		# self.sm.predict()
+		# yp2 = copy.deepcopy(self.sm.yp)
 		X, Y = np.meshgrid(np.sort(xp[:, 0]), np.sort(xp[:, 1]))
 		Z = np.ndarray((n, n))
 
@@ -1238,11 +1296,11 @@ class bmSM:
 		sampling.options["criterion"] = "ExactSE"
 
 		xp = sampling.generate_samples()
-		self.sm.xt.points = self.sm.x.points
 		self.sm.x.points = xp
+		# Predict responses using the trained surrogate 
 		self.sm.predict()
-		yp = self.sm.yp
-		X, Y = np.meshgrid(np.sort(xp[:, 0]), np.sort(xp[:, 1]))
+		yp = copy.deepcopy(self.sm.yp)
+		X, Y = np.meshgrid(np.sort(xt[:, 0]), np.sort(xt[:, 1]))
 		Z = np.ndarray((n, n))
 
 		for i in range(n):
@@ -1309,11 +1367,26 @@ class bmSM:
 		self.sm = Kriging(type="train", x=xt, y=yt, options=opts)
 		sampling = LHS(ns=n, vlim=v)
 		sampling.options["criterion"] = "ExactSE"
-		xp = sampling.generate_samples()
-		self.sm.xt.points = self.sm.x.points
-		self.sm.x.points = xp
+		xp = copy.deepcopy(sampling.generate_samples())
+		# self.sm.xt.points = self.sm.x.points
+		self.sm.x.points = copy.deepcopy(xp)
 		self.sm.predict()
-		yp = self.sm.yp
+		yp = copy.deepcopy(self.sm.yp)
+
+		# The following commented lines used for testing samples injection and surrogate retraining
+		# # np.random.seed(1000323)
+		# sampling2 = LHS(ns=2, vlim=v)
+		# sampling.options["criterion"] = "ExactSE"
+		# # Create the training set xt, yt
+		# xt2 = sampling2.generate_samples()
+		# yt2 = self.RB1(xt2, None)
+		# self.sm.addToTrainingSet(xt2, yt2)
+		# self.sm.train()
+		# self.sm.yp.points = np.zeros((1,1))
+		# self.sm.predict()
+		# yp2 = copy.deepcopy(self.sm.yp)
+		# print(yp.points-yp2.points)
+
 		X, Y = np.meshgrid(np.sort(xp[:, 0]), np.sort(xp[:, 1]))
 		Z = np.ndarray((n, n))
 
@@ -1350,8 +1423,7 @@ class bmSM:
 		sampling.options["criterion"] = "ExactSE"
 
 		xp = sampling.generate_samples()
-		self.sm.xt.points = self.sm.x.points
-		self.sm.x.points = xp
+		self.sm.x.points = copy.deepcopy(xp)
 		self.sm.predict()
 		yp = self.sm.yp
 		X, Y = np.meshgrid(np.sort(xp[:, 0]), np.sort(xp[:, 1]))
