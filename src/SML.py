@@ -1074,7 +1074,6 @@ class Kriging(surrogateModel):
     self.x = DataSet(name="x", nrows=1, ncols=1)
     if xfile is not None and x is None:
       self.xt.points = np.loadtxt(xfile, skiprows=1, delimiter=",")
-      self.xt.points = self.x.points.reshape(self.x.points.shape[0], -1)
       self.scf_func = scf_func
       self.model_db = model_db
     else:
@@ -1083,8 +1082,7 @@ class Kriging(surrogateModel):
     if type == 'train':
       self.yt = DataSet(name="y", nrows=1, ncols=1)
       if yfile is not None and x is None:
-        y = np.loadtxt(yfile, skiprows=1, delimiter=",")
-        self.yt.points = y.reshape(y.points.shape[0], -1)
+        self.yt.points = np.loadtxt(yfile, skiprows=1, delimiter=",")
       else:
         p = os.path.abspath(os.path.join(os.getcwd(), "model.db"))
         self.model_db = p
@@ -1116,6 +1114,7 @@ class Kriging(surrogateModel):
     else:
       if model_db is not None:
         model_data = shelve.open(model_db)
+        self.model_db = model_db # need to assign self.model_db
         self.xt.points = model_data['x_train']
         self.yt.points = model_data['y_train']
         self.beta = model_data['beta']
@@ -1123,9 +1122,6 @@ class Kriging(surrogateModel):
         self.theta = model_data['theta']
         self.p = model_data['p']
         model_data.close()
-
-        print('\nUsing', self.model_db, 'to predict values...')
-      self.predict()  # Run the model prediction functions
 
   # Function to compute beta for the ordinary Kriging algorithm
 
