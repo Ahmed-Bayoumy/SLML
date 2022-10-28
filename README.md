@@ -11,7 +11,7 @@ Surrogate Models Library: A python library for dynamic surrogates
 ---
 ## How to use SML package
 
-After installing the `SML` package from [PYPI](https://pypi.org/) website, the functions and classes of `SML` module can be imported directly to the python script as follows:
+After installing the `SML` package, the functions and classes of `SML` module can be imported directly to the python script as follows:
 
 ```pycon
 from SML import *
