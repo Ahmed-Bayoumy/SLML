@@ -1073,7 +1073,8 @@ class Kriging(surrogateModel):
     self.yp = DataSet(name="yp", nrows=1, ncols=1)
     self.x = DataSet(name="x", nrows=1, ncols=1)
     if xfile is not None and x is None:
-      self.xt.points = np.loadtxt(xfile, skiprows=1, delimiter=",")
+      temp = copy.deepcopy(np.loadtxt(xfile, skiprows=1, delimiter=","))
+      self.xt.points = temp.reshape(temp.shape[0], -1)
       self.scf_func = scf_func
       self.model_db = model_db
     else:
@@ -1082,7 +1083,9 @@ class Kriging(surrogateModel):
     if type == 'train':
       self.yt = DataSet(name="y", nrows=1, ncols=1)
       if yfile is not None and x is None:
-        self.yt.points = np.loadtxt(yfile, skiprows=1, delimiter=",")
+        temp = copy.deepcopy(np.loadtxt(
+            yfile, skiprows=1, delimiter=","))
+        self.yt.points = temp.reshape(temp.shape[0], -1)
       else:
         p = os.path.abspath(os.path.join(os.getcwd(), "model.db"))
         self.model_db = p
