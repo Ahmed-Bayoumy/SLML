@@ -1,1 +1,7 @@
 __pycache__/
+.coverage
+*.vscode
+*.pytest_cache
+post
+*.egg-info
+/venv
