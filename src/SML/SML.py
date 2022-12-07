@@ -68,6 +68,7 @@ class SAMPLING_METHOD(Enum):
   FULLFACTORIAL: int = auto()
   LH: int = auto()
   RS: int = auto()
+  HALTON: int = auto()
 
 @dataclass
 class norm_t:
@@ -1031,6 +1032,12 @@ class RBF(surrogateModel):
 
   def train(self):
     r: DataSet = DataSet(name="r", nrows=1, ncols=1)
+    # This is a definsive check to remove redundant (duplicate) points (if any). 
+    for i in range(self.xt.nrows):
+      for j in range(i+1, self.xt.nrows):
+        if all(np.equal(self.xt.points[i], self.xt.points[j])):
+          self.xt.points = copy.deepcopy(np.delete(self.xt.points,j, 0))
+          self.yt.points = copy.deepcopy(np.delete(self.yt.points,j, 0))
     r.points = self._evaluate_radial_distance(self.xt.points)
     N = self._evaluate_kernel(r)
     self.weights = np.linalg.solve(N, self.yt.points)
