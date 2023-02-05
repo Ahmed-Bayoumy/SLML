@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from SML import *
+from SLML import *
 from typing import List, Dict
 import os
 import pickle

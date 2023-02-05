@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------------------#
-#  Simple statistical learning Library - SML                                          #
+#  Statistical Learning Models ibrary - SLML                                          #
 #                                                                                     #
 #  Author: Ahmed H. Bayoumy                                                           #
 #  email: ahmed.bayoumy@mail.mcgill.ca                                                #
@@ -16,8 +16,8 @@
 #  You should have received a copy of the GNU Lesser General Public License along     #
 #  with this program. If not, see <http://www.gnu.org/licenses/>.                     #
 #                                                                                     #
-#  You can find information on simple_mads at                                         #
-#  https://github.com/Ahmed-Bayoumy/SML                                               #
+#  You can find information on SLML        at                                         #
+#  https://github.com/Ahmed-Bayoumy/SLML                                              #
 # ------------------------------------------------------------------------------------#
 
 
@@ -2292,11 +2292,11 @@ class bmSM:
 
     print("optimal model:")
     self.sm._display_acc_metrics()
-    self.sm.model_db = os.path.join(os.getcwd(), f"tests/training_data/{self.sm.name}")
+    self.sm.model_db = os.path.join(os.getcwd(), f"tests/models_db/{self.sm.name}")
     self.sm.store_model()
 
     self.sm1 = RBF(x=xt, y=yt)
-    self.sm1.model_db = os.path.join(os.getcwd(), f"tests/training_data/{self.sm.name}")
+    self.sm1.model_db = os.path.join(os.getcwd(), f"tests/models_db/{self.sm.name}")
 
     self.sm1.load_model()
 
@@ -2328,11 +2328,11 @@ class bmSM:
 
     print("optimal model:")
     self.sm._display_acc_metrics()
-    self.sm.model_db = os.path.join(os.getcwd(), f"tests/training_data/{self.sm.name}")
+    self.sm.model_db = os.path.join(os.getcwd(), f"tests/models_db/{self.sm.name}")
     self.sm.store_model()
 
     self.sm1 = Kriging(x=xt, y=yt)
-    self.sm1.model_db = os.path.join(os.getcwd(), f"tests/training_data/{self.sm.name}")
+    self.sm1.model_db = os.path.join(os.getcwd(), f"tests/models_db/{self.sm.name}")
     self.sm1.load_model()
 
     lower, yp, upper = self.sm.bootstrap()
@@ -2363,11 +2363,11 @@ class bmSM:
 
     print("optimal model:")
     self.sm._display_acc_metrics()
-    self.sm.model_db = os.path.join(os.getcwd(), f"tests/training_data/{self.sm.name}")
+    self.sm.model_db = os.path.join(os.getcwd(), f"tests/models_db/{self.sm.name}")
     self.sm.store_model()
 
     self.sm1 = LS(x=xt, y=yt)
-    self.sm1.model_db = os.path.join(os.getcwd(), f"tests/training_data/{self.sm.name}")
+    self.sm1.model_db = os.path.join(os.getcwd(), f"tests/models_db/{self.sm.name}")
 
     self.sm1.load_model()
 
