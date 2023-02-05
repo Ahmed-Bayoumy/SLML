@@ -13,15 +13,9 @@ def test_quick():
   p.fhist = []
   s = np.array([[1.2, 1.2]])
   p.xhist = s
-  p.RBTrue()
-  p.xhist = s
-  p.RB_RBF()
-  p.xhist = s
-  p.RB_RBF1()
-  p.xhist = s
-  p.RB_kriging()
-  p.xhist = s
-  p.RB_kriging1()
+  p.RB_RBF(display=False)
+  p.RB_kriging(display=False)
+  p.RB_LS(display=False)
 
 
 

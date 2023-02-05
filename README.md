@@ -1,7 +1,7 @@
-# SML
-Surrogate Models Library: A python library for dynamic surrogates
+# DSML
+Dynamic Surrogate Models Library: A python library for dynamic surrogates
 
-**Version 1.0.0**
+**Version 2.0.0**
 
 ---
 
@@ -9,10 +9,10 @@ Surrogate Models Library: A python library for dynamic surrogates
 
 © Ahmed H. Bayoumy 
 ---
-## How to use SML package
+## How to use DSML package
 
-After installing the `SML` package, the functions and classes of `SML` module can be imported directly to the python script as follows:
+After installing the `DSML` package, the functions and classes of `DSML` module can be imported directly into the python script as follows:
 
 ```pycon
-from SML import *
+from DSML import *
 ```
