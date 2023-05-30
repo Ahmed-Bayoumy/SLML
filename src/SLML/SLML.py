@@ -41,7 +41,7 @@ import numpy as np
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from pyDOE2 import lhs
-import OMADS
+from OMADS import POLL
 
 import shelve
 from scipy.spatial.distance import squareform, cdist, pdist
@@ -400,7 +400,13 @@ class sampling(ABC):
     n = self.varLimits.shape[0]
     for i in range(n):
       S[:, i] = self.varLimits[i, 0] + S[:, i] * \
-          (self.varLimits[i, 1] - self.varLimits[i, 0])
+            (self.varLimits[i, 1] - self.varLimits[i, 0])
+      if "msize" in self.options.keys():
+        s = S[:, i]
+        nr = int((self.varLimits[i, 1] - self.varLimits[i, 0])/self.options["msize"])
+        mod = (s % ((self.varLimits[i, 1] - self.varLimits[i, 0])/nr))
+        S[:, i] = s - mod
+        
     return S
 
   @abstractmethod
@@ -450,7 +456,7 @@ class FullFactorial(sampling):
       weights = np.ones(nx) / nx
     else:
       weights = np.atleast_1d(self.options["weights"])
-      weights /= np.sum(weights)
+      weights = np.divide(weights, np.sum(weights))
 
     num_list = np.ones(nx, int)
     while np.prod(num_list) < npts:
@@ -509,11 +515,20 @@ class LHS(sampling):
 
   def methods(self, nx: int = None, ns: int = None, criterion: str = None, r: Any = None):
     if criterion is not None:
-      return lhs(
+      if self.options["criterion"]:
+        return lhs(
+            nx,
+            samples=ns,
+            criterion=self.options["criterion"],
+            iterations=10,
+            random_state=r
+        )
+      else:
+        return lhs(
           nx,
           samples=ns,
           criterion=self.options["criterion"],
-          random_state=r,
+          random_state=r
       )
     else:
       return self._ExactSE(nx, ns)
@@ -720,13 +735,15 @@ class LHS(sampling):
 
 @dataclass
 class RS(sampling):
-  def __init__(self, ns: int, vlim: np.ndarray):
-    self.options = {}
+  def __init__(self, ns: int, vlim: np.ndarray, options: Dict[str, Any] = {}):
+    self.options = options
     self.ns = ns
     self.varLimits = copy.deepcopy(vlim)
 
   def generate_samples(self):
     nx = self.varLimits.shape[0]
+    if self.options != {} and "randomness" in self.options:
+      np.random.seed(self.options["randomness"])
     return self.scale_to_limits(np.random.rand(self.ns, nx))
 
   def methods(self):
@@ -1269,7 +1286,7 @@ class modelFactory(ABC):
     data = {"evaluator": eval, "param": param, "options": options}
 
     out = {}
-    out = OMADS.main(data)
+    out = POLL.main(data)
     results = out["xmin"]
     c = 0
     for d in self.HP:
