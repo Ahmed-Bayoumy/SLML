@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 if __name__ == "__main__":
   setup(
-    name="SLML",
+    name="StatLML",
     author="Ahmed H. Bayoumy",
     author_email="ahmed.bayoumy@mail.mcgill.ca",
     version='2.0.0',
