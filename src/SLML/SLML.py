@@ -1287,12 +1287,12 @@ class modelFactory(ABC):
 
     out = {}
     out = POLL.main(data)
-    results = out["xmin"]
+    results = out[0]["xmin"]
     c = 0
     for d in self.HP:
       if isinstance(self.HP[d], dict) and "id" in self.HP[d] and self.HP[d]["id"] == c:
         if self.HP[d]["type"][0] == "D" or self.HP[d]["type"][0] == "C":
-          self.HP[d]["value"] = self.HP[d]["sets"][self.HP[d]["type"][2:]][int(results[c])]
+          self.HP[d]["value"] = results[c]
         elif self.HP[d]["type"][0] == "I":
           self.HP[d]["value"] = int(results[c])
         else:
