@@ -6,3 +6,5 @@ post
 *.egg-info
 /venv
 .vscode
+.pypirc
+/build
