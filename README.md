@@ -1,3 +1,5 @@
+[![lx-build-and-pytest](https://github.com/Ahmed-Bayoumy/SLML/actions/workflows/lx-build-and-pytest.yml/badge.svg)](https://github.com/Ahmed-Bayoumy/SLML/actions/workflows/lx-build-and-pytest.yml)
+
 # SLML
 Statistical Learning Models Library: A python library for dynamic surrogates and statistical learning algorithms
 
