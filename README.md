@@ -5,7 +5,7 @@
 # SLML
 Statistical Learning Models Library: A python library for dynamic surrogates and statistical learning algorithms
 
-**Version 2.0.0**
+**Version 2.1.0**
 
 ---
 
