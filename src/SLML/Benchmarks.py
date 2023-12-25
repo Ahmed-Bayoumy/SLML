@@ -4,7 +4,18 @@ from ._visualize import visualize, plt
 import numpy as np
 from typing import Dict, List
 import os
-from samplersLib import LHS
+from pyDOE2 import lhs
+
+def scale_to_limits(varLimits, S: np.ndarray) -> np.ndarray:
+    """
+      Scale the samples from the unit hypercube to the specified limit.
+    """
+    n = varLimits.shape[0]
+    for i in range(n):
+      S[:, i] = varLimits[i, 0] + S[:, i] * \
+            (varLimits[i, 1] - varLimits[i, 0])
+        
+    return S
 
 class bmSM:
   xhist: np.ndarray = np.empty((1, 2))
@@ -193,7 +204,7 @@ class bmSM:
     v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
     n = 500
 
-    sampling = LHS(ns=n, vlim=v)
+    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
 
     xt = sampling.generate_samples()
     yt = self.RB(xt, None)
@@ -229,7 +240,7 @@ class bmSM:
     v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
     n = 500
 
-    sampling = LHS(ns=n, vlim=v)
+    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
 
     xt = sampling.generate_samples()
     yt = self.RB(xt, None)
@@ -264,7 +275,7 @@ class bmSM:
     v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
     n = 500
 
-    sampling = LHS(ns=n, vlim=v)
+    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
 
     xt = sampling.generate_samples()
     yt = self.RB(xt, None)
@@ -300,7 +311,7 @@ class bmSM:
     # Generate samples
     v = np.array([[-5.0, 10.0], [0.0, 15.0]])
     n = 300
-    sampling = LHS(ns=n, vlim=v)
+    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
     xt = sampling.generate_samples()
     yt = self.branin(xt)
     opts: Dict = {}
@@ -322,7 +333,7 @@ class bmSM:
     # Generate samples
     v = np.array([[-2., 2.]])
     n = 1000
-    sampling = LHS(ns=n, vlim=v)
+    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
     xt = sampling.generate_samples()
     # Evaluate samples on the true function
     yt = self.bench3(xt)
