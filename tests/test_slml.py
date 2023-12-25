@@ -4,9 +4,20 @@ from typing import List, Dict
 import os
 from scipy.optimize import minimize, rosen, rosen_der
 from SLML.Benchmarks import bmSM
-
+from pyDOE2 import lhs
 xhist: np.ndarray = np.empty((1, 2))
 fhist: List = list
+
+def scale_to_limits(varLimits, S: np.ndarray) -> np.ndarray:
+    """
+      Scale the samples from the unit hypercube to the specified limit.
+    """
+    n = varLimits.shape[0]
+    for i in range(n):
+      S[:, i] = varLimits[i, 0] + S[:, i] * \
+            (varLimits[i, 1] - varLimits[i, 0])
+        
+    return S
 
 def bench1(x):
   """A benchmark function for test purposes.
@@ -191,9 +202,9 @@ def RB_RBF( display=True):
   v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
   n = 500
 
-  sampling = LHS(ns=n, vlim=v)
+  sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples = n))
 
-  xt = sampling.generate_samples()
+  xt = sampling
   yt = RB(xt, None)
   opts: Dict = {}
   opts = {"display": True}
@@ -218,9 +229,10 @@ def RB_kriging( display=True):
   v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
   n = 500
 
-  sampling = LHS(ns=n, vlim=v)
+  sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples=n))
 
-  xt = sampling.generate_samples()
+
+  xt = sampling
   yt = RB(xt, None)
   opts: Dict = {}
   opts = {"display": True}
@@ -244,9 +256,10 @@ def RB_LS( display=True):
   v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
   n = 500
 
-  sampling = LHS(ns=n, vlim=v)
+  sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples=n))
 
-  xt = sampling.generate_samples()
+
+  xt = sampling
   yt = RB(xt, None)
   opts: Dict = {}
   opts = {"display": True}
@@ -271,8 +284,9 @@ def Branin_LS_Poly( display=True):
   # Generate samples
   v = np.array([[-5.0, 10.0], [0.0, 15.0]])
   n = 300
-  sampling = LHS(ns=n, vlim=v)
-  xt = sampling.generate_samples()
+  sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples=n))
+
+  xt = sampling
   yt = branin(xt)
   opts: Dict = {}
   # Prepare and fit the model
@@ -290,4 +304,3 @@ def test_quick():
   RB_RBF(display=False)
   RB_kriging(display=False)
   RB_LS(display=False)
-

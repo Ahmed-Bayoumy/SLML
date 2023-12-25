@@ -204,7 +204,7 @@ class bmSM:
     v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
     n = 500
 
-    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
+    sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples=n))
 
     xt = sampling.generate_samples()
     yt = self.RB(xt, None)
@@ -240,7 +240,7 @@ class bmSM:
     v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
     n = 500
 
-    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
+    sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples=n))
 
     xt = sampling.generate_samples()
     yt = self.RB(xt, None)
@@ -275,7 +275,7 @@ class bmSM:
     v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
     n = 500
 
-    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
+    sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples=n))
 
     xt = sampling.generate_samples()
     yt = self.RB(xt, None)
@@ -311,7 +311,7 @@ class bmSM:
     # Generate samples
     v = np.array([[-5.0, 10.0], [0.0, 15.0]])
     n = 300
-    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
+    sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples=n))
     xt = sampling.generate_samples()
     yt = self.branin(xt)
     opts: Dict = {}
@@ -333,7 +333,7 @@ class bmSM:
     # Generate samples
     v = np.array([[-2., 2.]])
     n = 1000
-    sampling = scale_to_limits(varLimits=v, S=lhs(ns=n))
+    sampling = scale_to_limits(varLimits=v, S=lhs(n=2, samples=n))
     xt = sampling.generate_samples()
     # Evaluate samples on the true function
     yt = self.bench3(xt)
