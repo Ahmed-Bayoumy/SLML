@@ -1,11 +1,10 @@
 import numpy as np
-import pytest
-from SLML import *
+from SLML.Models import *
 from typing import List, Dict
 import os
-import pickle
 from scipy.optimize import minimize, rosen, rosen_der
-import copy
+from SLML.Benchmarks import bmSM
+from samplersLib import LHS
 
 xhist: np.ndarray = np.empty((1, 2))
 fhist: List = list
@@ -216,7 +215,6 @@ def RB_RBF( display=True):
 
   sm1.load_model()
 
-
 def RB_kriging( display=True):
   v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
   n = 500
@@ -242,7 +240,6 @@ def RB_kriging( display=True):
   sm1 = Kriging(x=xt, y=yt)
   sm1.model_db = os.path.join(os.getcwd(), f"tests/models_db/{sm.name}")
   sm1.load_model()
-
 
 def RB_LS( display=True):
   v = np.array([[-2.0, 2.0], [-2.0, 2.0]])
@@ -285,8 +282,6 @@ def Branin_LS_Poly( display=True):
   sm.train()
   # Bootstrap
   lower, yp, upper = sm.bootstrap()
-  
-
 
 def test_quick():
   p = bmSM()
@@ -297,6 +292,3 @@ def test_quick():
   RB_kriging(display=False)
   RB_LS(display=False)
 
-
-
- 
