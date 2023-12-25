@@ -4,7 +4,6 @@ from typing import List, Dict
 import os
 from scipy.optimize import minimize, rosen, rosen_der
 from SLML.Benchmarks import bmSM
-from samplersLib import LHS
 
 xhist: np.ndarray = np.empty((1, 2))
 fhist: List = list
