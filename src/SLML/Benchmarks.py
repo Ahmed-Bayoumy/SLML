@@ -1,5 +1,5 @@
 
-from SLML.Models import Kriging, RBF, LS
+from SLML.Models import Kriging, RBF, LS, MOE
 from ._visualize import visualize, plt
 import numpy as np
 from typing import Dict, List
